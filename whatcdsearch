@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'trollop'
+require 'mechanize'
+
+opts = Trollop::options do
+  banner <<-END_BANNER
+Searches for a torrent in What.CD, by author and album.
+
+Example:
+  whatcdsearch -a "Talking Heads" -l "Live USA" -u jeff -p password
+
+Arguments:
+END_BANNER
+
+  opt :artist, 'Artist name', :type => String, :required => true
+  opt :album, 'Album name', :type => String, :required => true
+  opt :username, 'What.CD username', :type => String, :required => true
+  opt :password, 'What.CD password', :type => String, :required => true
+end
+
+mech = Mechanize.new
+# Click login link
+login_page = mech.get 'http://what.cd/login.php'
+# Submit login page
+home_page = login_page.form_with(:action => 'login.php') do |form|
+    form.username = opts[:username]
+    form.password = opts[:password]
+end.submit
+# Get to the search page
+search_page = mech.get 'http://what.cd/torrents.php?action=advanced&'
+# Search
+results_page = search_page.form_with(:name => 'filter') do |form|
+    form.artistname = opts[:artist]
+    form.groupname = opts[:album]
+    form.order_by = 'snatched'
+end.submit
+# Get the links on the results page
+links = results_page.links_with(
+    :text => 'DL', :href => /^torrents\.php\?action=download/)
+
+if links.any?
+  puts 'http://what.cd/' + links[0].href
+else
+  $stderr.puts "No torrents found for #{opts[:artist]} - #{opts[:album]}."
+  exit 1
+end
+
