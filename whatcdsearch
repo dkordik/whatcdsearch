@@ -1,23 +1,41 @@
 #!/usr/bin/env ruby
 
+require 'yaml'
 require 'rubygems'
 require 'trollop'
 require 'mechanize'
 
+config_default = File.expand_path '~/.config/whatcdsearch'
+
 opts = Trollop::options do
   banner <<-END_BANNER
-Searches for a torrent in What.CD, by author and album.
+Searches for a music torrent in What.CD, by author and album.
 
 Example:
-  whatcdsearch -a "Talking Heads" -l "Live USA" -u jeff -p password
+  whatcdsearch -a "Talking Heads" -l "Live USA"
 
 Arguments:
 END_BANNER
 
   opt :artist, 'Artist name', :type => String, :required => true
   opt :album, 'Album name', :type => String, :required => true
-  opt :username, 'What.CD username', :type => String, :required => true
-  opt :password, 'What.CD password', :type => String, :required => true
+  opt :username, 'What.CD username (looks in config if not specified)',
+      :type => String
+  opt :password, 'What.CD password (looks in config if not specified)',
+      :type => String
+  opt :config, "Location of configuration file (defaults to #{config_default})",
+      :type => String, :default => config_default
+end
+
+unless opts[:username] and opts[:password]
+  unless File.exists?(opts[:config])
+    Trollop::die :config, "file #{opts[:config]} must exist"
+  end
+  config = YAML::load File.open(opts[:config])
+  Trollop::die :config, 'must specify username' unless config['username']
+  opts[:username] = config['username']
+  Trollop::die :config, 'must specify password' unless config['password']
+  opts[:password] = config['password']
 end
 
 mech = Mechanize.new

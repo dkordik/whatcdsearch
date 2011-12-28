@@ -1,4 +1,4 @@
-Searches for a torrent in What.CD, by author and album.
+Searches for a music torrent in What.CD, by author and album.
 
 Example:
   whatcdsearch -a "Talking Heads" -l "Live USA" -u jeff -p password
