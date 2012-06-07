@@ -1,6 +1,6 @@
 (This is a fork. See up top.)
 
-Downloads a torrent from what.cd to your `~/Downloads` directory.
+Downloads a torrent (V0 if available) from what.cd to your `~/Downloads` directory.
 
 ##1. Add your username and password to config##
 
