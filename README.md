@@ -1,19 +1,22 @@
-(This is a fork. See up top.)
-
 Downloads a torrent (V0 if available) from what.cd to your `~/Downloads` directory.
 
-##1. Add your username and password to config##
 
-in `~/.config/whatcdsearch`:
 
+####Setup####
+
+1. Install ruby gems `trollop` and `mechanize`.
+
+2. Create `~/.config/whatcdsearch`:
+```
     username: your_whatcd_username
     password: your_whatcd_password
+```
 
-##2a. Then use the provided shell script:##
+####Usage (shell script)####
 
     whatget "Radiohead" "In Rainbows"
 
-##2b. Or not...##
+####Usage (original)####
 
     whatcdsearch -a "Talking Heads" -l "Live USA" -u jeff -p password
 
