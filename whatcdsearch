@@ -39,24 +39,39 @@ unless opts[:username] and opts[:password]
 end
 
 mech = Mechanize.new
+
 # Click login link
-login_page = mech.get 'http://what.cd/login.php'
+login_page = mech.get 'https://what.cd/login.php'
+
 # Submit login page
 home_page = login_page.form_with(:action => 'login.php') do |form|
-    form.username = opts[:username]
-    form.password = opts[:password]
+  if !form
+    $stderr.puts "Couldn't login... Can you access what.cd normally?"
+    exit 1
+  end
+  form.username = opts[:username]
+  form.password = opts[:password]
 end.submit
+
 # Get to the search page
-search_page = mech.get 'http://what.cd/torrents.php?action=advanced&'
+search_page = mech.get 'https://what.cd/torrents.php?action=advanced'
+
 # Search
-results_page = search_page.form_with(:name => 'filter') do |form|
-    form.artistname = opts[:artist]
-    form.groupname = opts[:album]
-    form.order_by = 'snatched'
-    form.format = 'MP3'
+results_page = search_page.form_with(:name => 'torrents') do |form|
+  if !form or form.nil?
+    $stderr.puts "Couldn't find search page form..."
+    exit 1
+  end
+  form["searchstr"] = ''
+  form["artistname"] = opts[:artist]
+  form["groupname"] = opts[:album]
+  form["order_by"] = 'snatched'
+  form["format"] = 'MP3'
 end.submit
+
 # Get the torrent page links to look at bitrate
 post_links = results_page.links_with(:text => /MP3/)
+
 # Get the download links to... yknow
 download_links = results_page.links_with(
     :text => 'DL', :href => /^torrents\.php\?action=download/)
@@ -70,7 +85,7 @@ def get_best_download_link(post_links, download_links)
 end
 
 if download_links.any?
-  torrent = "http://what.cd/#{get_best_download_link(post_links, download_links)}"
+  torrent = "https://what.cd/#{get_best_download_link(post_links, download_links)}"
   puts "Downloading torrent: #{opts[:artist]} - #{opts[:album]}"
   `curl "#{torrent}" > ~/Downloads/whatcd.torrent`
 else
